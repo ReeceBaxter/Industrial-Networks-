@@ -1,0 +1,325 @@
+import time  
+
+  
+
+   
+
+  
+
+try:  
+
+  
+
+    from machine import Pin  
+
+  
+
+    from micropython import const  
+
+  
+
+    import network  
+
+  
+
+    import uasyncio as asyncio  
+
+  
+
+      
+
+  
+
+except ImportError:  
+
+  
+
+    print("Ignoring MicroPython includes")  
+
+  
+
+   
+
+  
+
+import urequests as requests  
+
+  
+
+   
+
+  
+
+###  
+
+  
+
+### Main Loop  
+
+  
+
+###  
+
+  
+
+   
+
+  
+
+# Set the SSID of the wireless network  
+
+  
+
+SSID = "VM2721F8"  
+
+  
+
+# Set the password of the wireless network  
+
+  
+
+PASSWORD = "nzmAyG6rqmjj"  
+
+  
+
+   
+
+  
+
+# Set-up the link status LED  
+
+  
+
+try:  
+
+  
+
+    link_status = Pin("WL_GPIO0", Pin.OUT)  
+
+  
+
+except NameError:  
+
+  
+
+    print("Cannot find the MicroPython PIN library")  
+
+  
+
+   
+
+  
+
+try:  
+
+  
+
+    # Set-up the Wireless Driver  
+
+  
+
+    wlan = network.WLAN(network.STA_IF)  
+
+  
+
+    wlan.active(True)  
+
+  
+
+    wlan.connect(SSID, PASSWORD)  
+
+  
+
+     
+
+  
+
+    # Number of connection attempts  
+
+  
+
+    # before a hard fail  
+
+  
+
+    max_wait = 10  
+
+  
+
+     
+
+  
+
+    while max_wait > 0:  
+
+  
+
+        if wlan.status() >= 3:  
+
+  
+
+            print("Already connected!")  
+
+  
+
+            print("IP:  " + wlan.ifconfig()[0])  
+
+  
+
+            break  
+
+  
+
+     
+
+  
+
+        max_wait -= 1  
+
+  
+
+        print("waiting for connection...")  
+
+  
+
+        time.sleep(1)  
+
+  
+
+     
+
+  
+
+    print(wlan.status())  
+
+  
+
+     
+
+  
+
+    # Handle connection error  
+
+  
+
+    if wlan.status() != 3:  
+
+  
+
+        raise RuntimeError("network connection failed")  
+
+  
+
+    else:  
+
+  
+
+        print("Connected")  
+
+  
+
+        print("IP: " + wlan.ifconfig()[0])  
+
+  
+
+     
+
+  
+
+    # Display the link light if connected  
+
+  
+
+    if wlan.status() == 3:  
+
+  
+
+        link_status.on()  
+
+  
+
+    else:  
+
+  
+
+        link_status.off()  
+
+  
+
+          
+
+  
+
+except NameError:  
+
+  
+
+    print("Cannot find the MicroPython network library")  
+
+  
+
+     
+
+  
+
+# Try the client connection  
+
+  
+
+response = requests.request("GET", "http://192.168.17.44/green_led0", headers={"Accept": "application/json"})  
+
+  
+
+   
+
+  
+
+print(response.status_code)  
+
+  
+
+print(response.content)  
+
+  
+
+print(response.headers)  
+
+  
+
+   
+
+  
+
+print(response.text)  
+
+  
+
+# You can access .content multiple times of course  
+
+  
+
+print(response.content)  
+
+  
+
+print(response.json())  
+
+  
+
+   
+
+  
+
+# It's mandatory to close response objects as soon as you finished  
+
+  
+
+# working with them. On Pycopy platforms without full-fledged  
+
+  
+
+# OS, not doing so may lead to resource leaks and malfunction.  
+
+  
+
+response.close()  
